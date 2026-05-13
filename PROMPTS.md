@@ -126139,3 +126139,16 @@ Background: Authentic stadium reverb,
 
 </details>
 
+<details>
+<summary><strong>The Lovelyline </strong></summary>
+
+## The Lovelyline 
+
+Contributed by @anonymous
+
+```md
+A minimalist line-art drawing of a simple character conceptualizing 'overcoming an obstacle'. Clean black continuous line style on a white background. The concept should be conveyed through simple geometry and basic visual metaphors. Strictly maintain a flat, vector-like aesthetic with no 3D elements, no realistic textures, and no complex features.
+```
+
+</details>
+
