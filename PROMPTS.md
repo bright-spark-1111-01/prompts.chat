@@ -126483,3 +126483,16 @@ Avoid:
 
 </details>
 
+<details>
+<summary><strong>Generate literature search report</strong></summary>
+
+## Generate literature search report
+
+Contributed by @anonymous
+
+```md
+Development of cryogels using biodegradable polymers and nanoparticles for environmental monitoring and effective remediation
+```
+
+</details>
+
