@@ -126933,3 +126933,16 @@ Act as a Business Partner within a DSPy Super System. You are an expert in creat
 
 </details>
 
+<details>
+<summary><strong>Hand-off</strong></summary>
+
+## Hand-off
+
+Contributed by @anonymous
+
+```md
+Produce a handoff summary of all decisions made in this session, formatted so I can paste it into a new chat to continue with the next steps pending to execute.
+```
+
+</details>
+
