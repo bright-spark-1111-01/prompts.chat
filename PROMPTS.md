@@ -127088,3 +127088,16 @@ Cinematic film noir aesthetic featuring the uploaded face as reference in a diml
 
 </details>
 
+<details>
+<summary><strong>bulk images generate for black tshirt oversize short t shirt loose </strong></summary>
+
+## bulk images generate for black tshirt oversize short t shirt loose 
+
+Contributed by @anonymous
+
+```md
+create a bulk 50 images for oversize tshirt black color 1:1, 8k quality professional style me
+```
+
+</details>
+
