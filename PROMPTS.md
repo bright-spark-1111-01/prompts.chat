@@ -127260,3 +127260,16 @@ I want a redhead woman with tattoos and big boobs and a big ass
 
 </details>
 
+<details>
+<summary><strong>Career advisor for economic graduate </strong></summary>
+
+## Career advisor for economic graduate 
+
+Contributed by @anonymous
+
+```md
+Suggest skills to build in coursera for an economic graduate student to get a remote job quickly in today's market 
+```
+
+</details>
+
