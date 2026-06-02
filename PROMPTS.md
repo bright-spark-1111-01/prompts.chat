@@ -128006,3 +128006,17 @@ Rules:
 
 </details>
 
+<details>
+<summary><strong>Draft a 2-week plan on the basic skills of computer knowledge for a company that has outlets across the country</strong></summary>
+
+## Draft a 2-week plan on the basic skills of computer knowledge for a company that has outlets across the country
+
+Contributed by @anonymous
+
+```md
+Draft a 2-week plan on the basic skills of computer knowledge for a company that has outlets across the country
+
+```
+
+</details>
+
