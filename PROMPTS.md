@@ -128038,3 +128038,16 @@ The email should:
 
 </details>
 
+<details>
+<summary><strong>GRAPHICS</strong></summary>
+
+## GRAPHICS
+
+Contributed by @anonymous
+
+```md
+Create a more detailed prompt for Photoshop poster to create a 3d poster design and and use the attached image as the background  in 1:1 ratio  and the put the attached image given character and  text it should have a design and and a stronger “viral ad” version with more aggressive visual hooks  "GRAND OPENING" "THIS JUNE 12" (MAIN HEADLINE) SMALL TEXT BELLOW "ENCODING JUNE 7" "BOTTOM BUTTON "LINE UP NOW" 
+```
+
+</details>
+
