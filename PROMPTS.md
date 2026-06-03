@@ -128343,3 +128343,16 @@ quiz her with open-ended or multiple choice questions with AskUserQuestion (be s
 
 </details>
 
+<details>
+<summary><strong>Dummy Test Prompt</strong></summary>
+
+## Dummy Test Prompt
+
+Contributed by @anonymous
+
+```md
+Explain {{topic}} in simple terms, as if talking to a 10-year-old.
+```
+
+</details>
+
