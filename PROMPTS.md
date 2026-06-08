@@ -128489,3 +128489,16 @@ I NEED THIS FULLY INTEGRATED, IMPLEMENTED, ENFORCED, HARDENED, FUNCTIONAL AND FU
 
 </details>
 
+<details>
+<summary><strong>TVS raider </strong></summary>
+
+## TVS raider 
+
+Contributed by @anonymous
+
+```md
+I want to know everything about tvs raider give a good prompt for this 
+```
+
+</details>
+
