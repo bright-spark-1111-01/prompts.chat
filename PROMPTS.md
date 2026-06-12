@@ -129045,3 +129045,16 @@ Rules:
 
 </details>
 
+<details>
+<summary><strong>Making basic MCQ questions for entrance </strong></summary>
+
+## Making basic MCQ questions for entrance 
+
+Contributed by @anonymous
+
+```md
+Create basic most important MCQ questions (200) for  msc geology entrance from every important topics along with answers of each from this syllabus - Medical geology, Paleontology, Stratigraphy, petrology, Sedimentology, Economic geology, Environmental geology.
+```
+
+</details>
+
