@@ -129982,6 +129982,7 @@ Rules:
 
 Variables:
 - ${category} - The music category for which the cover is being designed.
+- ${playlistName} - The name of the playlist for which the cover is being designed.
 ```
 
 </details>
