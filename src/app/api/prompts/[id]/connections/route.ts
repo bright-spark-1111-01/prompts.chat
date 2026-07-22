@@ -3,6 +3,7 @@ import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 const createConnectionSchema = z.object({
   targetId: z.string().min(1),
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     // Get all connections where this prompt is involved (source or target)
@@ -79,17 +80,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error("Failed to fetch connections:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch connections" },
-      { status: 500 }
-    );
+    return serverError("Failed to fetch connections");
   }
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const { id } = await params;
@@ -105,20 +103,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!sourcePrompt) {
-      return NextResponse.json(
-        { error: "Source prompt not found" },
-        { status: 404 }
-      );
+      return notFound("Source prompt not found");
     }
 
     if (
       sourcePrompt.authorId !== session.user.id &&
       session.user.role !== "ADMIN"
     ) {
-      return NextResponse.json(
-        { error: "You can only add connections to your own prompts" },
-        { status: 403 }
-      );
+      return forbidden("You can only add connections to your own prompts");
     }
 
     // Verify target prompt exists and belongs to the user
@@ -128,10 +120,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!targetPrompt) {
-      return NextResponse.json(
-        { error: "Target prompt not found" },
-        { status: 404 }
-      );
+      return notFound("Target prompt not found");
     }
 
     // Verify user owns the target prompt (users can only connect their own prompts)
@@ -139,18 +128,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       targetPrompt.authorId !== session.user.id &&
       session.user.role !== "ADMIN"
     ) {
-      return NextResponse.json(
-        { error: "You can only connect to your own prompts" },
-        { status: 403 }
-      );
+      return forbidden("You can only connect to your own prompts");
     }
 
     // Prevent self-connection
     if (id === targetId) {
-      return NextResponse.json(
-        { error: "Cannot connect a prompt to itself" },
-        { status: 400 }
-      );
+      return badRequest("Cannot connect a prompt to itself");
     }
 
     // Check if connection already exists
@@ -159,10 +142,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (existing) {
-      return NextResponse.json(
-        { error: "Connection already exists" },
-        { status: 400 }
-      );
+      return badRequest("Connection already exists");
     }
 
     // Calculate order if not provided
@@ -203,9 +183,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     console.error("Failed to create connection:", error);
-    return NextResponse.json(
-      { error: "Failed to create connection" },
-      { status: 500 }
-    );
+    return serverError("Failed to create connection");
   }
 }
