@@ -42,8 +42,9 @@ export default async function HomePage() {
         const data = await res.json();
         githubStars = data.stargazers_count;
       }
-    } catch {
+    } catch (error) {
       // Use fallback
+      console.error("Failed to fetch GitHub stars, using fallback value:", error);
     }
   }
 
