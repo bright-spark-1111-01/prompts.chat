@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 // POST /api/prompts/[id]/feature - Toggle featured status (admin only)
 export async function POST(
@@ -11,7 +12,7 @@ export async function POST(
     const session = await auth();
     
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     // Check if user is admin
@@ -21,7 +22,7 @@ export async function POST(
     });
 
     if (user?.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     const { id } = await params;
@@ -33,7 +34,7 @@ export async function POST(
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     // Toggle featured status
@@ -51,9 +52,6 @@ export async function POST(
     });
   } catch (error) {
     console.error("Error toggling featured status:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError("Internal server error");
   }
 }

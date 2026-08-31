@@ -4,6 +4,7 @@ import { improvePrompt } from "@/lib/ai/improve-prompt";
 import { db } from "@/lib/db";
 import { isValidApiKeyFormat } from "@/lib/api-key";
 import { auth } from "@/lib/auth";
+import { apiError, serverError, unauthorized } from "@/lib/api-response";
 
 const requestSchema = z.object({
   prompt: z.string().min(1, "Prompt is required").max(10000, "Prompt too long"),
@@ -40,10 +41,7 @@ export async function POST(request: NextRequest) {
     // Authenticate request (session or API key)
     const user = await authenticateRequest(request);
     if (!user) {
-      return NextResponse.json(
-        { error: "Authentication required. Please log in or provide a valid API key." },
-        { status: 401 }
-      );
+      return unauthorized("Authentication required. Please log in or provide a valid API key.");
     }
 
     const body = await request.json();
@@ -67,16 +65,10 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error) {
       // Handle rate limiting
       if (error.message.includes("rate limit")) {
-        return NextResponse.json(
-          { error: "Rate limit exceeded. Please try again later." },
-          { status: 429 }
-        );
+        return apiError("Rate limit exceeded. Please try again later.", 429);
       }
     }
 
-    return NextResponse.json(
-      { error: "An error occurred while improving the prompt" },
-      { status: 500 }
-    );
+    return serverError("An error occurred while improving the prompt");
   }
 }

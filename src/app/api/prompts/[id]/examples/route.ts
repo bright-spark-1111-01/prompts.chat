@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { checkPromptAccess } from "@/lib/prompt-access";
+import { badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 const addExampleSchema = z.object({
   mediaUrl: z.string().url(),
@@ -25,7 +26,7 @@ export async function GET(
 
   // Only allow examples for IMAGE and VIDEO prompts
   if (prompt.type !== "IMAGE" && prompt.type !== "VIDEO") {
-    return NextResponse.json({ error: "Examples not supported for this prompt type" }, { status: 400 });
+    return badRequest("Examples not supported for this prompt type");
   }
 
   const examples = await db.userPromptExample.findMany({
@@ -53,7 +54,7 @@ export async function POST(
   const session = await auth();
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const { id: promptId } = await params;
@@ -68,17 +69,17 @@ export async function POST(
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     // Only allow examples for IMAGE and VIDEO prompts
     if (prompt.type !== "IMAGE" && prompt.type !== "VIDEO") {
-      return NextResponse.json({ error: "Examples not supported for this prompt type" }, { status: 400 });
+      return badRequest("Examples not supported for this prompt type");
     }
 
     // Don't allow adding examples to private prompts (unless owner)
     if (prompt.isPrivate && prompt.authorId !== session.user.id) {
-      return NextResponse.json({ error: "Cannot add example to private prompt" }, { status: 403 });
+      return forbidden("Cannot add example to private prompt");
     }
 
     const example = await db.userPromptExample.create({
@@ -106,7 +107,7 @@ export async function POST(
       return NextResponse.json({ error: "Invalid input", details: error.issues }, { status: 400 });
     }
     console.error("Failed to add example:", error);
-    return NextResponse.json({ error: "Failed to add example" }, { status: 500 });
+    return serverError("Failed to add example");
   }
 }
 
@@ -117,7 +118,7 @@ export async function DELETE(
   const session = await auth();
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const { id: promptId } = await params;
@@ -127,7 +128,7 @@ export async function DELETE(
     const exampleId = searchParams.get("exampleId");
 
     if (!exampleId) {
-      return NextResponse.json({ error: "exampleId required" }, { status: 400 });
+      return badRequest("exampleId required");
     }
 
     const example = await db.userPromptExample.findUnique({
@@ -136,17 +137,17 @@ export async function DELETE(
     });
 
     if (!example) {
-      return NextResponse.json({ error: "Example not found" }, { status: 404 });
+      return notFound("Example not found");
     }
 
     if (example.promptId !== promptId) {
-      return NextResponse.json({ error: "Example does not belong to this prompt" }, { status: 400 });
+      return badRequest("Example does not belong to this prompt");
     }
 
     // Only allow owner or admin to delete
     const isAdmin = session.user.role === "ADMIN";
     if (example.userId !== session.user.id && !isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return forbidden("Unauthorized");
     }
 
     await db.userPromptExample.delete({
@@ -156,6 +157,6 @@ export async function DELETE(
     return NextResponse.json({ deleted: true });
   } catch (error) {
     console.error("Failed to delete example:", error);
-    return NextResponse.json({ error: "Failed to delete example" }, { status: 500 });
+    return serverError("Failed to delete example");
   }
 }
