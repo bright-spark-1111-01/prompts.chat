@@ -67,7 +67,8 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
           );
           setResults(filtered);
         }
-      } catch {
+      } catch (error) {
+        console.error("Failed to search contributors:", error);
         setResults([]);
       } finally {
         setIsLoading(false);

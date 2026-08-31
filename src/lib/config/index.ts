@@ -174,8 +174,9 @@ export async function getConfig(): Promise<PromptsConfig> {
     // Dynamic import of user config
     const userConfig = await import("@/../prompts.config");
     baseConfig = userConfig.default;
-  } catch {
+  } catch (error) {
     // Fallback to default config
+    console.error("Failed to load prompts.config, using default config:", error);
     baseConfig = {
       branding: {
         name: "prompts.chat",

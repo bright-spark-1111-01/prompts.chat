@@ -86,8 +86,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     return [...staticPages, ...bookPages, ...categoryPages, ...promptPages, ...tagPages];
-  } catch {
-    // Database unavailable (build time) - return static and book pages only
+  } catch (error) {
+    // Database unavailable (e.g. build time) - return static and book pages only
+    console.error("Failed to build dynamic sitemap entries, returning static pages only:", error);
     return [...staticPages, ...bookPages];
   }
 }

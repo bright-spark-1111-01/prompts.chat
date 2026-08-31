@@ -139,8 +139,9 @@ export async function generateAllEmbeddings(
     try {
       await generatePromptEmbedding(prompt.id);
       success++;
-    } catch {
+    } catch (error) {
       failed++;
+      console.error(`Failed to generate embedding for prompt ${prompt.id}:`, error);
     }
     
     // Report progress
