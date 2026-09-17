@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, serverError, unauthorized } from "@/lib/api-response";
 
 // Update user (role change or verification)
 export async function PATCH(
@@ -10,7 +11,7 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
@@ -30,7 +31,7 @@ export async function PATCH(
 
     if (role !== undefined) {
       if (!["ADMIN", "USER"].includes(role)) {
-        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+        return badRequest("Invalid role");
       }
       updateData.role = role;
     }
@@ -53,7 +54,7 @@ export async function PATCH(
     if (dailyGenerationLimit !== undefined) {
       const limit = parseInt(dailyGenerationLimit, 10);
       if (isNaN(limit) || limit < 0) {
-        return NextResponse.json({ error: "Invalid daily generation limit" }, { status: 400 });
+        return badRequest("Invalid daily generation limit");
       }
       updateData.dailyGenerationLimit = limit;
       // Also reset remaining credits to the new limit
@@ -83,7 +84,7 @@ export async function PATCH(
     return NextResponse.json(user);
   } catch (error) {
     console.error("Error updating user:", error);
-    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+    return serverError("Failed to update user");
   }
 }
 
@@ -95,14 +96,14 @@ export async function DELETE(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
 
     // Don't allow deleting yourself
     if (id === session.user.id) {
-      return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 });
+      return badRequest("Cannot delete yourself");
     }
 
     await db.user.delete({
@@ -112,6 +113,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting user:", error);
-    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+    return serverError("Failed to delete user");
   }
 }

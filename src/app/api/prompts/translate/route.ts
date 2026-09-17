@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireUser } from "@/lib/api-auth";
 import { translateContent } from "@/lib/ai/generation";
 import { z } from "zod";
+import { badRequest, serverError } from "@/lib/api-response";
 
 const translateSchema = z.object({
   content: z.string().min(1),
@@ -9,14 +10,8 @@ const translateSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  
-  if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
+  const { response } = await requireUser();
+  if (response) return response;
 
   try {
     const body = await request.json();
@@ -27,16 +22,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ translatedContent });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request body" },
-        { status: 400 }
-      );
+      return badRequest("Invalid request body");
     }
 
     console.error("Translation error:", error);
-    return NextResponse.json(
-      { error: "Failed to translate content" },
-      { status: 500 }
-    );
+    return serverError("Failed to translate content");
   }
 }

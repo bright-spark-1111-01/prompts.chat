@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { findAndSaveRelatedPrompts } from "@/lib/ai/embeddings";
 import { getConfig } from "@/lib/config";
+import { badRequest, forbidden, serverError, unauthorized } from "@/lib/api-response";
 
 export async function POST() {
   try {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     // Check if user is admin
@@ -20,16 +20,13 @@ export async function POST() {
     });
 
     if (user?.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     // Check if AI search is enabled
     const config = await getConfig();
     if (!config.features.aiSearch) {
-      return NextResponse.json(
-        { error: "AI search is not enabled" },
-        { status: 400 }
-      );
+      return badRequest("AI search is not enabled");
     }
 
     // Get all public prompts with embeddings
@@ -45,7 +42,7 @@ export async function POST() {
     });
 
     if (prompts.length === 0) {
-      return NextResponse.json({ error: "No prompts to process" }, { status: 400 });
+      return badRequest("No prompts to process");
     }
 
     // Create a streaming response
@@ -92,9 +89,6 @@ export async function POST() {
     });
   } catch (error) {
     console.error("Related prompts generation error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate related prompts" },
-      { status: 500 }
-    );
+    return serverError("Failed to generate related prompts");
   }
 }

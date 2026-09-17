@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, notFound, serverError } from "@/lib/api-response";
 
 const reportSchema = z.object({
   promptId: z.string().min(1),
@@ -11,10 +12,8 @@ const reportSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
     const body = await request.json();
     const { promptId, reason, details } = reportSchema.parse(body);
@@ -26,15 +25,12 @@ export async function POST(request: Request) {
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     // Prevent self-reporting (except for relist requests)
     if (prompt.authorId === session.user.id && reason !== "RELIST_REQUEST") {
-      return NextResponse.json(
-        { error: "You cannot report your own prompt" },
-        { status: 400 }
-      );
+      return badRequest("You cannot report your own prompt");
     }
 
     // Check if user already reported this prompt
@@ -47,10 +43,7 @@ export async function POST(request: Request) {
     });
 
     if (existingReport) {
-      return NextResponse.json(
-        { error: "You have already reported this prompt" },
-        { status: 400 }
-      );
+      return badRequest("You have already reported this prompt");
     }
 
     // Create the report
@@ -66,15 +59,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request data" },
-        { status: 400 }
-      );
+      return badRequest("Invalid request data");
     }
     console.error("Report creation error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError("Internal server error");
   }
 }

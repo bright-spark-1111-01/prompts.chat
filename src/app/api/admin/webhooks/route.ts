@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { isPrivateUrl } from "@/lib/webhook";
+import { serverError, unauthorized } from "@/lib/api-response";
 
 const VALID_METHODS = ["GET", "POST", "PUT", "PATCH"] as const;
 const VALID_EVENTS = ["PROMPT_CREATED", "PROMPT_UPDATED", "PROMPT_DELETED"] as const;
@@ -81,7 +82,7 @@ export async function GET() {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return unauthorized("unauthorized");
     }
 
     const webhooks = await db.webhookConfig.findMany({
@@ -91,7 +92,7 @@ export async function GET() {
     return NextResponse.json(webhooks);
   } catch (error) {
     console.error("Get webhooks error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return serverError("server_error");
   }
 }
 
@@ -100,7 +101,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return unauthorized("unauthorized");
     }
 
     const body = await request.json();
@@ -130,6 +131,6 @@ export async function POST(request: Request) {
     return NextResponse.json(webhook);
   } catch (error) {
     console.error("Create webhook error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return serverError("server_error");
   }
 }

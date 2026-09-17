@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateApiKey } from "@/lib/api-key";
+import { requireUser } from "@/lib/api-auth";
+import { badRequest, notFound } from "@/lib/api-response";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
@@ -21,7 +19,7 @@ export async function GET() {
   });
 
   if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return notFound("User not found");
   }
 
   return NextResponse.json({
@@ -32,11 +30,8 @@ export async function GET() {
 }
 
 export async function POST() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
   const apiKey = generateApiKey();
 
@@ -49,11 +44,8 @@ export async function POST() {
 }
 
 export async function DELETE() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
   await db.user.update({
     where: { id: session.user.id },
@@ -64,17 +56,14 @@ export async function DELETE() {
 }
 
 export async function PATCH(request: Request) {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
   const body = await request.json();
   const { mcpPromptsPublicByDefault } = body;
 
   if (typeof mcpPromptsPublicByDefault !== "boolean") {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return badRequest("Invalid request");
   }
 
   await db.user.update({

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import fs from "fs/promises";
 import path from "path";
+import { badRequest, serverError, unauthorized } from "@/lib/api-response";
 
 interface CsvRow {
   act: string;
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     // Read the prompts.csv file from the project root
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     const rows = parseCSV(csvContent);
     
     if (rows.length === 0) {
-      return NextResponse.json({ error: "No valid rows found in CSV" }, { status: 400 });
+      return badRequest("No valid rows found in CSV");
     }
 
     // Get the admin user ID for fallback author assignment
@@ -255,10 +256,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error importing prompts:", error);
-    return NextResponse.json(
-      { error: "Failed to import prompts" },
-      { status: 500 }
-    );
+    return serverError("Failed to import prompts");
   }
 }
 
@@ -267,7 +265,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     // Read CSV to get the titles of community prompts
@@ -298,9 +296,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error deleting community prompts:", error);
-    return NextResponse.json(
-      { error: "Failed to delete community prompts" },
-      { status: 500 }
-    );
+    return serverError("Failed to delete community prompts");
   }
 }
