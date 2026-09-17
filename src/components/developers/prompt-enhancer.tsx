@@ -60,7 +60,8 @@ function loadHistory(): SavedPrompt[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
-  } catch {
+  } catch (error) {
+    console.error("Failed to load prompt enhancer history from storage:", error);
     return [];
   }
 }

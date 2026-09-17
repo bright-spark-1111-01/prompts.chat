@@ -60,8 +60,9 @@ export default getRequestConfig(async () => {
   let messages;
   try {
     messages = (await import(`@/../messages/${locale}.json`)).default;
-  } catch {
+  } catch (error) {
     // Fall back to default locale messages
+    console.error(`Failed to load messages for locale "${locale}", falling back to "${defaultLocale}":`, error);
     messages = (await import(`@/../messages/${defaultLocale}.json`)).default;
   }
   

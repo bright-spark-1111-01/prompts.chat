@@ -90,7 +90,9 @@ function loadSettings(): TokenizerSettings {
         outputPrice: parsed.outputPrice ?? DEFAULT_OUTPUT_PRICE,
       };
     }
-  } catch {}
+  } catch (error) {
+    console.error("Failed to load tokenizer settings from storage:", error);
+  }
   return { contextWindow: DEFAULT_CONTEXT_WINDOW, inputPrice: DEFAULT_INPUT_PRICE, outputPrice: DEFAULT_OUTPUT_PRICE };
 }
 
@@ -104,7 +106,8 @@ function loadHistory(): SavedAnalysis[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
-  } catch {
+  } catch (error) {
+    console.error("Failed to load tokenizer history from storage:", error);
     return [];
   }
 }
