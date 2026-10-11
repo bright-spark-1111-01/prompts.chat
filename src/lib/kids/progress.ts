@@ -16,20 +16,22 @@ export interface KidsProgress {
   totalStars: number;
 }
 
-const defaultProgress: KidsProgress = {
-  levels: {},
-  totalStars: 0,
-};
+function createDefaultProgress(): KidsProgress {
+  return {
+    levels: {},
+    totalStars: 0,
+  };
+}
 
 export function getProgress(): KidsProgress {
-  if (typeof window === "undefined") return defaultProgress;
+  if (typeof window === "undefined") return createDefaultProgress();
   
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return defaultProgress;
+    if (!stored) return createDefaultProgress();
     return JSON.parse(stored) as KidsProgress;
   } catch {
-    return defaultProgress;
+    return createDefaultProgress();
   }
 }
 
