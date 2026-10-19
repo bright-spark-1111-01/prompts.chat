@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 export async function POST(
   request: Request,
@@ -9,12 +10,12 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     // Only admins can restore deleted prompts
     if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     const { id } = await params;
@@ -26,11 +27,11 @@ export async function POST(
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     if (!prompt.deletedAt) {
-      return NextResponse.json({ error: "Prompt is not deleted" }, { status: 400 });
+      return badRequest("Prompt is not deleted");
     }
 
     // Restore the prompt by setting deletedAt to null
@@ -42,9 +43,6 @@ export async function POST(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Restore prompt error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return serverError("Internal server error");
   }
 }

@@ -1,20 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { generateAllEmbeddings, isAISearchEnabled } from "@/lib/ai/embeddings";
+import { badRequest, serverError, unauthorized } from "@/lib/api-response";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const enabled = await isAISearchEnabled();
     if (!enabled) {
-      return NextResponse.json(
-        { error: "AI Search is not enabled or OPENAI_API_KEY is not set" },
-        { status: 400 }
-      );
+      return badRequest("AI Search is not enabled or OPENAI_API_KEY is not set");
     }
 
     // Check if regenerate mode
@@ -54,9 +52,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Generate embeddings error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate embeddings" },
-      { status: 500 }
-    );
+    return serverError("Failed to generate embeddings");
   }
 }

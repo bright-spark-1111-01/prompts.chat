@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { serverError, unauthorized } from "@/lib/api-response";
 
 /**
  * Cron job endpoint to reset daily generation credits for all users.
@@ -20,19 +21,13 @@ export async function POST(request: NextRequest) {
 
   if (!cronSecret) {
     console.error("CRON_SECRET is not configured");
-    return NextResponse.json(
-      { error: "Cron secret not configured" },
-      { status: 500 }
-    );
+    return serverError("Cron secret not configured");
   }
 
   const providedSecret = authHeader?.replace("Bearer ", "");
 
   if (providedSecret !== cronSecret) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return unauthorized();
   }
 
   try {
@@ -53,10 +48,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error resetting daily credits:", error);
-    return NextResponse.json(
-      { error: "Failed to reset credits" },
-      { status: 500 }
-    );
+    return serverError("Failed to reset credits");
   }
 }
 

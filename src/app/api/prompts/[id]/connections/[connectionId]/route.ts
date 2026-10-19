@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 const updateConnectionSchema = z.object({
   label: z.string().min(1).max(100).optional(),
@@ -16,7 +17,7 @@ interface RouteParams {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const { id, connectionId } = await params;
@@ -32,27 +33,18 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!connection) {
-      return NextResponse.json(
-        { error: "Connection not found" },
-        { status: 404 }
-      );
+      return notFound("Connection not found");
     }
 
     if (connection.sourceId !== id) {
-      return NextResponse.json(
-        { error: "Connection does not belong to this prompt" },
-        { status: 400 }
-      );
+      return badRequest("Connection does not belong to this prompt");
     }
 
     if (
       connection.source.authorId !== session.user.id &&
       session.user.role !== "ADMIN"
     ) {
-      return NextResponse.json(
-        { error: "You can only delete connections from your own prompts" },
-        { status: 403 }
-      );
+      return forbidden("You can only delete connections from your own prompts");
     }
 
     await db.promptConnection.delete({
@@ -66,17 +58,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Failed to delete connection:", error);
-    return NextResponse.json(
-      { error: "Failed to delete connection" },
-      { status: 500 }
-    );
+    return serverError("Failed to delete connection");
   }
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const { id, connectionId } = await params;
@@ -95,27 +84,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!connection) {
-      return NextResponse.json(
-        { error: "Connection not found" },
-        { status: 404 }
-      );
+      return notFound("Connection not found");
     }
 
     if (connection.sourceId !== id) {
-      return NextResponse.json(
-        { error: "Connection does not belong to this prompt" },
-        { status: 400 }
-      );
+      return badRequest("Connection does not belong to this prompt");
     }
 
     if (
       connection.source.authorId !== session.user.id &&
       session.user.role !== "ADMIN"
     ) {
-      return NextResponse.json(
-        { error: "You can only update connections on your own prompts" },
-        { status: 403 }
-      );
+      return forbidden("You can only update connections on your own prompts");
     }
 
     const updated = await db.promptConnection.update({
@@ -141,9 +121,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     console.error("Failed to update connection:", error);
-    return NextResponse.json(
-      { error: "Failed to update connection" },
-      { status: 500 }
-    );
+    return serverError("Failed to update connection");
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, serverError, unauthorized } from "@/lib/api-response";
 
 const updateSchema = z.object({
   status: z.enum(["PENDING", "REVIEWED", "DISMISSED"]),
@@ -14,7 +15,7 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
@@ -29,9 +30,9 @@ export async function PATCH(
     return NextResponse.json(report);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+      return badRequest("Invalid data");
     }
     console.error("Report update error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return serverError("Internal server error");
   }
 }

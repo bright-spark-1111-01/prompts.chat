@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isPrivateUrl } from "@/lib/webhook";
+import { badRequest, notFound, unauthorized } from "@/lib/api-response";
 
 export async function POST(
   request: Request,
@@ -10,7 +11,7 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return unauthorized("unauthorized");
     }
 
     const { id } = await params;
@@ -21,7 +22,7 @@ export async function POST(
     });
 
     if (!webhook) {
-      return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
+      return notFound("Webhook not found");
     }
 
     // Replace placeholders with test values (must match WEBHOOK_PLACEHOLDERS)
@@ -61,18 +62,12 @@ export async function POST(
     try {
       parsedPayload = JSON.parse(payload);
     } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON payload" },
-        { status: 400 }
-      );
+      return badRequest("Invalid JSON payload");
     }
 
     // A10: Validate webhook URL is not targeting private/internal networks
     if (isPrivateUrl(webhook.url)) {
-      return NextResponse.json(
-        { error: "Webhook URL targets a private/internal network which is not allowed" },
-        { status: 400 }
-      );
+      return badRequest("Webhook URL targets a private/internal network which is not allowed");
     }
 
     // Send the test request

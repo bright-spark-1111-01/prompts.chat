@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { serverError, unauthorized } from "@/lib/api-response";
 
 // Update tag
 export async function PATCH(
@@ -10,7 +11,7 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
@@ -29,7 +30,7 @@ export async function PATCH(
     return NextResponse.json(tag);
   } catch (error) {
     console.error("Error updating tag:", error);
-    return NextResponse.json({ error: "Failed to update tag" }, { status: 500 });
+    return serverError("Failed to update tag");
   }
 }
 
@@ -41,7 +42,7 @@ export async function DELETE(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
@@ -53,6 +54,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting tag:", error);
-    return NextResponse.json({ error: "Failed to delete tag" }, { status: 500 });
+    return serverError("Failed to delete tag");
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 const MAX_PINNED_PROMPTS = 3;
 
@@ -11,7 +12,7 @@ export async function POST(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id: promptId } = await params;
@@ -23,14 +24,11 @@ export async function POST(
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     if (prompt.authorId !== session.user.id) {
-      return NextResponse.json(
-        { error: "You can only pin your own prompts" },
-        { status: 403 }
-      );
+      return forbidden("You can only pin your own prompts");
     }
 
     // Check if already pinned
@@ -44,7 +42,7 @@ export async function POST(
     });
 
     if (existingPin) {
-      return NextResponse.json({ error: "Prompt already pinned" }, { status: 400 });
+      return badRequest("Prompt already pinned");
     }
 
     // Check pin limit
@@ -79,7 +77,7 @@ export async function POST(
     return NextResponse.json({ success: true, pinned: true });
   } catch (error) {
     console.error("Failed to pin prompt:", error);
-    return NextResponse.json({ error: "Failed to pin prompt" }, { status: 500 });
+    return serverError("Failed to pin prompt");
   }
 }
 
@@ -90,7 +88,7 @@ export async function DELETE(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id: promptId } = await params;
@@ -106,6 +104,6 @@ export async function DELETE(
     return NextResponse.json({ success: true, pinned: false });
   } catch (error) {
     console.error("Failed to unpin prompt:", error);
-    return NextResponse.json({ error: "Failed to unpin prompt" }, { status: 500 });
+    return serverError("Failed to unpin prompt");
   }
 }
