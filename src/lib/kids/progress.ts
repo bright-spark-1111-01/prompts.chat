@@ -28,7 +28,8 @@ export function getProgress(): KidsProgress {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return defaultProgress;
     return JSON.parse(stored) as KidsProgress;
-  } catch {
+  } catch (error) {
+    console.error("Failed to read kids progress from storage:", error);
     return defaultProgress;
   }
 }
@@ -119,7 +120,8 @@ export function getComponentState<T>(levelSlug: string, componentId: string): T 
     if (!stored) return null;
     const state = JSON.parse(stored) as ComponentState;
     return (state[levelSlug]?.[componentId] as T) || null;
-  } catch {
+  } catch (error) {
+    console.error("Failed to read component state from storage:", error);
     return null;
   }
 }
@@ -185,7 +187,8 @@ export function isSectionCompleted(levelSlug: string, sectionIndex: number): boo
     if (!stored) return false;
     const state = JSON.parse(stored) as SectionCompletionState;
     return state[levelSlug]?.[sectionIndex] || false;
-  } catch {
+  } catch (error) {
+    console.error("Failed to read section completion from storage:", error);
     return false;
   }
 }
@@ -243,7 +246,8 @@ export function hasCompletedInteraction(levelSlug: string, componentIdPrefix?: s
       }
     }
     return false;
-  } catch {
+  } catch (error) {
+    console.error("Failed to read interaction state from storage:", error);
     return false;
   }
 }

@@ -199,8 +199,9 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
         contributorCount: 0,
       }));
       total = prompts.length;
-    } catch {
+    } catch (error) {
       // Fallback to regular search on error
+      console.error("AI semantic search failed, falling back to regular search:", error);
     }
   }
   
