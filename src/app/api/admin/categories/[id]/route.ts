@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { serverError, unauthorized } from "@/lib/api-response";
 
 // Update category
 export async function PATCH(
@@ -11,7 +12,7 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
@@ -35,7 +36,7 @@ export async function PATCH(
     return NextResponse.json(category);
   } catch (error) {
     console.error("Error updating category:", error);
-    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+    return serverError("Failed to update category");
   }
 }
 
@@ -47,7 +48,7 @@ export async function DELETE(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorized();
     }
 
     const { id } = await params;
@@ -61,6 +62,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting category:", error);
-    return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
+    return serverError("Failed to delete category");
   }
 }

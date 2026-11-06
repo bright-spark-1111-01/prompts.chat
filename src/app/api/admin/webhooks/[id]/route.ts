@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { isPrivateUrl } from "@/lib/webhook";
+import { notFound, serverError, unauthorized } from "@/lib/api-response";
 
 const VALID_METHODS = ["GET", "POST", "PUT", "PATCH"];
 const VALID_EVENTS = ["PROMPT_CREATED", "PROMPT_UPDATED", "PROMPT_DELETED"];
@@ -94,7 +95,7 @@ export async function GET(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return unauthorized("unauthorized");
     }
 
     const { id } = await params;
@@ -103,13 +104,13 @@ export async function GET(
     });
 
     if (!webhook) {
-      return NextResponse.json({ error: "not_found" }, { status: 404 });
+      return notFound("not_found");
     }
 
     return NextResponse.json(webhook);
   } catch (error) {
     console.error("Get webhook error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return serverError("server_error");
   }
 }
 
@@ -121,7 +122,7 @@ export async function PATCH(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return unauthorized("unauthorized");
     }
 
     const { id } = await params;
@@ -150,7 +151,7 @@ export async function PATCH(
     return NextResponse.json(webhook);
   } catch (error) {
     console.error("Update webhook error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return serverError("server_error");
   }
 }
 
@@ -162,7 +163,7 @@ export async function DELETE(
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      return unauthorized("unauthorized");
     }
 
     const { id } = await params;
@@ -173,6 +174,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete webhook error:", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
+    return serverError("server_error");
   }
 }

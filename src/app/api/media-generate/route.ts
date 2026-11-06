@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import {
   getMediaGeneratorPlugin,
   getAvailableModels,
   isMediaGenerationAvailable,
 } from "@/lib/plugins/media-generators";
+import { badRequest, forbidden, notFound } from "@/lib/api-response";
 
 export async function GET() {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
   const available = isMediaGenerationAvailable();
   const imageModels = getAvailableModels("image");
@@ -43,11 +41,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session, response } = await requireUser();
+  if (response) return response;
 
   try {
     // Check user's credits and flagged status
@@ -60,33 +55,24 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return notFound("User not found");
     }
 
     // Block flagged users
     if (user.flagged) {
-      return NextResponse.json(
-        { error: "Your account has been flagged. Media generation is disabled." },
-        { status: 403 }
-      );
+      return forbidden("Your account has been flagged. Media generation is disabled.");
     }
 
     // Check credits
     if (user.generationCreditsRemaining <= 0) {
-      return NextResponse.json(
-        { error: "No generation credits remaining. Credits reset daily." },
-        { status: 403 }
-      );
+      return forbidden("No generation credits remaining. Credits reset daily.");
     }
 
     const body = await request.json();
     const { prompt, model, provider, type, inputImageUrl, resolution, aspectRatio } = body;
 
     if (!prompt || !model || !provider || !type) {
-      return NextResponse.json(
-        { error: "Missing required fields: prompt, model, provider, type" },
-        { status: 400 }
-      );
+      return badRequest("Missing required fields: prompt, model, provider, type");
     }
 
     const plugin = getMediaGeneratorPlugin(provider);

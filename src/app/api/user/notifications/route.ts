@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { serverError, unauthorized } from "@/lib/api-response";
 
 const DEFAULT_RESPONSE = { 
   pendingChangeRequests: 0,
@@ -91,11 +92,11 @@ export async function POST(request: Request) {
     session = await auth();
   } catch (error) {
     console.error("Auth error in notifications:", error);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   try {
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Mark notifications read error:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return serverError("Server error");
   }
 
   // Fallback return (should never reach here)

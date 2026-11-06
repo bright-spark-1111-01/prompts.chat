@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { z } from "zod";
+import { badRequest, forbidden, notFound, serverError, unauthorized } from "@/lib/api-response";
 
 const addToCollectionSchema = z.object({
   promptId: z.string().min(1),
@@ -11,7 +12,7 @@ export async function GET() {
   const session = await auth();
   
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const collections = await db.collection.findMany({
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   try {
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingCollection) {
-      return NextResponse.json({ error: "Already in collection" }, { status: 400 });
+      return badRequest("Already in collection");
     }
 
     const prompt = await db.prompt.findUnique({
@@ -82,11 +83,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     if (prompt.isPrivate && prompt.authorId !== session.user.id) {
-      return NextResponse.json({ error: "Cannot add private prompt" }, { status: 403 });
+      return forbidden("Cannot add private prompt");
     }
 
     const collection = await db.collection.create({
@@ -99,10 +100,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ collection, added: true });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+      return badRequest("Invalid input");
     }
     console.error("Failed to add to collection:", error);
-    return NextResponse.json({ error: "Failed to add to collection" }, { status: 500 });
+    return serverError("Failed to add to collection");
   }
 }
 
@@ -110,7 +111,7 @@ export async function DELETE(req: NextRequest) {
   const session = await auth();
   
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   try {
@@ -118,7 +119,7 @@ export async function DELETE(req: NextRequest) {
     const promptId = searchParams.get("promptId");
 
     if (!promptId) {
-      return NextResponse.json({ error: "promptId required" }, { status: 400 });
+      return badRequest("promptId required");
     }
 
     await db.collection.delete({
@@ -133,6 +134,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ removed: true });
   } catch (error) {
     console.error("Failed to remove from collection:", error);
-    return NextResponse.json({ error: "Failed to remove from collection" }, { status: 500 });
+    return serverError("Failed to remove from collection");
   }
 }

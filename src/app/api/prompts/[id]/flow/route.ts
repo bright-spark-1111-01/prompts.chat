@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { notFound, serverError } from "@/lib/api-response";
 
 interface FlowNode {
   id: string;
@@ -168,7 +169,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     ]);
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     const userId = session?.user?.id;
@@ -178,7 +179,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       !p.isPrivate || p.authorId === userId;
 
     if (!canSee(prompt)) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return notFound("Prompt not found");
     }
 
     // Get cached flow data
@@ -216,9 +217,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error("Failed to fetch flow:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch flow" },
-      { status: 500 }
-    );
+    return serverError("Failed to fetch flow");
   }
 }

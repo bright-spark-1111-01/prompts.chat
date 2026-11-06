@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getStoragePlugin } from "@/lib/plugins/registry";
 import sharp from "sharp";
+import { badRequest, unauthorized } from "@/lib/api-response";
 
 const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB for images
 const MAX_VIDEO_SIZE = 4 * 1024 * 1024; // 4MB for videos (Vercel serverless limit)
@@ -18,16 +19,13 @@ export async function POST(request: NextRequest) {
   const session = await auth();
   
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   const enabledStorage = process.env.ENABLED_STORAGE || "url";
   
   if (enabledStorage === "url") {
-    return NextResponse.json(
-      { error: "File upload is not enabled. Using URL storage mode." },
-      { status: 400 }
-    );
+    return badRequest("File upload is not enabled. Using URL storage mode.");
   }
 
   const storagePlugin = getStoragePlugin(enabledStorage);
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return badRequest("No file provided");
     }
 
     // Determine if file is image or video
@@ -60,10 +58,7 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     if (!isImage && !isVideo) {
-      return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4 videos are allowed." },
-        { status: 400 }
-      );
+      return badRequest("Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4 videos are allowed.");
     }
 
     // Validate file size based on type
